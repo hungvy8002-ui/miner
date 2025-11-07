@@ -135,7 +135,7 @@ class game {
                         if (obj instanceof NPC) {
                             obj.caught();
                             this.score += obj.score;
-                         else {
+                        } else {
                             this.score += obj.score;
                         }
                         timeH = time - 0.7;
