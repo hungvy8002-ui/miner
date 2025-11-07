@@ -97,7 +97,7 @@ class game {
             if (this.score >= tager || this.checkWin())
                 this.newGold();
             else {
-                window.alert("Linh đã bị egg bán với giá five đong do phế vật!\nKiếm được : " + this.score"đong trước khi đi lỉnh ");
+                window.alert("Linh đã bị egg bán với giá five đong do phế vật!\nKiếm được : " + this.score");
                 location.reload();
             }
         }
