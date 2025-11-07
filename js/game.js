@@ -97,7 +97,7 @@ class game {
             if (this.score >= tager || this.checkWin())
                 this.newGold();
             else {
-                window.alert("Linh đã bị egg bán với giá five đong do phế vật!\nYour Score: " + this.score);
+                window.alert("Linh đã bị egg bán với giá five đong do phế vật!\nKiếm được : " + this.score"đong trước khi đi lỉnh ");
                 location.reload();
             }
         }
@@ -135,7 +135,7 @@ class game {
                         if (obj instanceof NPC) {
                             obj.caught();
                             this.score += obj.score;
-                        } else {
+                         else {
                             this.score += obj.score;
                         }
                         timeH = time - 0.7;
@@ -201,7 +201,7 @@ class game {
         for (let npc of this.npcs) npc.draw();
 
         this.context.beginPath();
-        this.context.strokeStyle = "#FF0000";
+        this.context.strokeStyle = "#000000";
         this.context.lineWidth = Math.floor(this.getWidth() / 10);
         this.context.moveTo(XXX, YYY);
         this.context.lineTo(Xh, Yh);
