@@ -201,7 +201,7 @@ class game {
         for (let npc of this.npcs) npc.draw();
 
         this.context.beginPath();
-        this.context.strokeStyle = "#FF0000";
+        this.context.strokeStyle = "#000000";
         this.context.lineWidth = Math.floor(this.getWidth() / 10);
         this.context.moveTo(XXX, YYY);
         this.context.lineTo(Xh, Yh);
