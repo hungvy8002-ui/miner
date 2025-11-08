@@ -288,26 +288,39 @@ class game {
             if (check) break;
         }
 
-        // Thêm tối đa 2 quả bom vào N vị trí (thay thế một vài gold ngẫu nhiên),
-        // đảm bảo bom nằm trong mảng this.gg (không push ra ngoài N)
-        let numBombs = Math.min(2, Math.max(0, Math.floor(N * 0.02)));
-        if (numBombs <= 0) numBombs = 1; // đảm bảo ít nhất 1 bomb nếu N đủ lớn
-        // nếu N nhỏ, vẫn đảm bảo không vượt quá N
-        numBombs = Math.min(numBombs, N);
+        // ====== Thêm tối đa 2 quả bom mỗi màn, tránh trùng vị trí ======
+let numBombs = Math.min(2, Math.max(1, Math.floor(N * 0.02)));
+numBombs = Math.min(numBombs, N);
 
-        // Chọn chỉ số ngẫu nhiên không trùng
-        let chosen = {};
-        for (let b = 0; b < numBombs; b++) {
-            let idx;
-            let attempts = 0;
-            do {
-                idx = Math.floor(Math.random() * N);
-                attempts++;
-            } while ((chosen[idx] || (this.gg[idx] instanceof NPC)) && attempts < 20);
-            chosen[idx] = true;
-            this.gg[idx] = new Bomb(this);
+for (let b = 0; b < numBombs; b++) {
+    let bomb = new Bomb(this);
+
+    // Lặp lại cho đến khi bom không trùng với vật khác
+    let retry = 0;
+    while (retry < 100) {
+        let overlap = false;
+        for (let i = 0; i < this.gg.length; i++) {
+            let o = this.gg[i];
+            if (!o || !o.alive) continue;
+            let dx = bomb.x - o.x;
+            let dy = bomb.y - o.y;
+            let dist = Math.sqrt(dx * dx + dy * dy);
+            // tránh trùng trong phạm vi 2 lần bán kính bom
+            if (dist < bomb.radius + o.size()) {
+                overlap = true;
+                break;
+            }
         }
+        if (!overlap) break;
+        bomb.randomXY();
+        retry++;
     }
+
+    this.gg.push(bomb);
+}
+
+        
+    
 
     getWidth() {
         var area = document.documentElement.clientWidth * document.documentElement.clientHeight;
