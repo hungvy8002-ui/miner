@@ -1,9 +1,9 @@
 var goldIm = new Image();
-goldIm.src="images/gold.png";
+goldIm.src = "images/gold.png";
 var rockIm = new Image();
-rockIm.src="images/rock.png";
+rockIm.src = "images/rock.png";
 var diamondIM = new Image();
-diamondIM.src="images/diamond.png";
+diamondIM.src = "images/diamond.png";
 
 class gold {
     constructor(game) {
@@ -80,11 +80,84 @@ class gold {
     }
 
     draw() {
-        // this.game.rotate(0);
         this.game.context.drawImage(this.IM, this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
     }
 
     size() {
         return Math.sqrt(this.width * this.width + this.height * this.height) / 2;
+    }
+}
+
+// ===== BOM =====
+var bombIm = new Image();
+bombIm.src = "images/bomb.png";
+var explosionIm = new Image();
+explosionIm.src = "images/explosion.png";
+
+class Bomb {
+    constructor(game) {
+        this.game = game;
+        // Kích thước cố định (đường kính) = 50px theo yêu cầu
+        this.radius = 50;
+        this.x = 2 * this.game.getWidth() + Math.random() * (game_W - 4 * this.game.getWidth());
+        this.y = 2 * this.game.getWidth() + game_H / 3 + Math.random() * (2 * game_H / 3 - 4 * this.game.getWidth());
+        this.alive = true;
+        this.exploded = false;
+        this.explodeTime = 0;
+    }
+
+    update() {
+        // nếu exploded và đã quá 1s thì chết hẳn
+        if (this.exploded && Date.now() - this.explodeTime > 1000) {
+            this.alive = false;
+        }
+    }
+
+    draw() {
+        if (!this.alive) return;
+        const ctx = this.game.context;
+        if (!this.exploded) {
+            ctx.drawImage(bombIm, this.x - this.radius / 2, this.y - this.radius / 2, this.radius, this.radius);
+        } else {
+            // vẽ hình nổ lớn hơn bom (3x)
+            ctx.drawImage(explosionIm, this.x - 1.5 * this.radius, this.y - 1.5 * this.radius, 3 * this.radius, 3 * this.radius);
+        }
+    }
+
+    size() {
+        // trả về bán kính thực tế (dùng để check va chạm)
+        return this.radius / 2;
+    }
+
+    explode(objects) {
+        if (this.exploded) return;
+        this.exploded = true;
+        this.explodeTime = Date.now();
+
+        // giữ bom alive để render nổ trong 1s
+        this.alive = true;
+
+        // Phá hủy vật trong bán kính 3 lần kích thước bom (150px)
+        const range = this.radius * 3;
+        for (let i = 0; i < objects.length; i++) {
+            const o = objects[i];
+            if (!o || !o.alive || o === this) continue;
+            const dx = o.x - this.x;
+            const dy = o.y - this.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < range) {
+                o.alive = false;
+            }
+        }
+
+        // Bom sẽ biến mất sau 1s (xử lý trong update())
+        setTimeout(() => {
+            this.alive = false;
+        }, 1000);
+    }
+
+    randomXY() {
+        this.x = 2 * this.game.getWidth() + Math.random() * (game_W - 4 * this.game.getWidth());
+        this.y = 2 * this.game.getWidth() + game_H / 3 + Math.random() * (2 * game_H / 3 - 4 * this.game.getWidth());
     }
 }

@@ -130,7 +130,21 @@ class game {
                 index = -1;
                 for (let i = 0; i < this.gg.length; i++) {
                     let obj = this.gg[i];
-                    if (obj.alive && this.range(Xh, Yh, obj.x, obj.y) <= 2 * this.getWidth()) {
+                    if (obj && obj.alive && this.range(Xh, Yh, obj.x, obj.y) <= 2 * this.getWidth()) {
+
+                        // 💥 Nếu là bom thì nổ, không cộng/trừ điểm
+                        if (typeof Bomb !== 'undefined' && obj instanceof Bomb) {
+                            obj.explode(this.gg);
+                            // giữ móc đứng yên 1 khung (để thấy hiệu ứng)
+                            d = false;
+                            ok = false;
+                            index = -1;
+                            timeH = time - 0.7;
+                            vlH = 0;
+                            continue;
+                        }
+
+                        // 💰 Nếu là vật phẩm thường → cộng điểm
                         obj.alive = false;
                         if (obj instanceof NPC) {
                             obj.caught();
@@ -148,7 +162,7 @@ class game {
         if (drag && index == -1) {
             for (let i = 0; i < this.gg.length; i++) {
                 let obj = this.gg[i];
-                if (obj.alive && this.range(Xh, Yh, obj.x, obj.y) <= obj.size()) {
+                if (obj && obj.alive && this.range(Xh, Yh, obj.x, obj.y) <= obj.size()) {
                     ok = true;
                     index = i;
                     break;
@@ -157,9 +171,12 @@ class game {
         }
 
         if (index != -1) {
-            this.gg[index].x = Xh;
-            this.gg[index].y = Yh + this.gg[index].height / 3;
-            speedReturn = this.gg[index].speed;
+            if (this.gg[index]) {
+                this.gg[index].x = Xh;
+                // Một số object (bomb) có thể không có height — an toàn khi dùng (this.gg[index].height || 0)
+                this.gg[index].y = Yh + (this.gg[index].height ? this.gg[index].height / 3 : 0);
+                speedReturn = this.gg[index].speed || speedReturn;
+            }
         }
     }
 
@@ -191,13 +208,15 @@ class game {
     draw() {
         this.clearScreen();
 
-        for (let i = 0; i < N; i++)
-            if (this.gg[i].alive) {
-                this.gg[i].update();
-                this.gg[i].draw();
+        // vẽ mọi vật trong this.gg (dùng length để bao gồm NPC/bomb/...)
+        for (let i = 0; i < this.gg.length; i++) {
+            if (this.gg[i] && this.gg[i].alive) {
+                if (typeof this.gg[i].update === 'function') this.gg[i].update();
+                if (typeof this.gg[i].draw === 'function') this.gg[i].draw();
             }
+        }
 
-        // 🔹 vẽ NPC
+        // 🔹 vẽ NPC (nếu muốn chồng lên hoặc riêng biệt)
         for (let npc of this.npcs) npc.draw();
 
         this.context.beginPath();
@@ -250,25 +269,60 @@ class game {
     }
 
     checkWin() {
-        let check = true;
-        for (let i = 0; i < N; i++)
-            if (this.gg[i].alive == true)
-                check = false;
-        return check;
+        // sửa: kiểm tra toàn bộ this.gg, nếu còn object alive => chưa win
+        for (let i = 0; i < this.gg.length; i++) {
+            if (this.gg[i] && this.gg[i].alive) return false;
+        }
+        return true;
     }
 
     initGold() {
         this.gg = [];
         for (let i = 0; i < N; i++) this.gg[i] = new gold(this);
+
+        // === Kiểm tra trùng cho vàng/đá ===
         while (true) {
             let check = true;
-            for (let i = 0; i < N - 1; i++)
-                for (let j = i + 1; j < N; j++)
+            for (let i = 0; i < N - 1; i++) {
+                for (let j = i + 1; j < N; j++) {
                     while (this.range(this.gg[i].x, this.gg[i].y, this.gg[j].x, this.gg[j].y) < 2 * this.getWidth()) {
                         check = false;
                         this.gg[j].randomXY();
                     }
+                }
+            }
             if (check) break;
+        }
+
+        // === Thêm tối đa 2 quả bom mỗi màn, tránh trùng vị trí ===
+        let numBombs = Math.min(2, Math.max(1, Math.floor(N * 0.02)));
+        numBombs = Math.min(numBombs, N);
+
+        for (let b = 0; b < numBombs; b++) {
+            let bomb = new Bomb(this);
+
+            // Lặp lại cho đến khi bom không trùng với vật khác
+            let retry = 0;
+            while (retry < 200) {
+                let overlap = false;
+                for (let i = 0; i < this.gg.length; i++) {
+                    let o = this.gg[i];
+                    if (!o || !o.alive) continue;
+                    let dx = bomb.x - o.x;
+                    let dy = bomb.y - o.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+                    // tránh trùng: khoảng cách phải lớn hơn bán kính bom + bán kính vật
+                    if (dist < (bomb.radius / 2) + (o.size ? o.size() : 0)) {
+                        overlap = true;
+                        break;
+                    }
+                }
+                if (!overlap) break;
+                bomb.randomXY();
+                retry++;
+            }
+
+            this.gg.push(bomb);
         }
     }
 
@@ -342,4 +396,3 @@ class NPC {
 }
 
 new game();
-
