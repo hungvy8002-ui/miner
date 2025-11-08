@@ -98,22 +98,15 @@ explosionIm.src = "images/explosion.png";
 class Bomb {
     constructor(game) {
         this.game = game;
-        // Kích thước bom cố định theo yêu cầu: ~2.5 lần kim cương
-        // Kim cương trong gold.js có width = this.game.getWidth() / 2
-        // => bom radius (diameter) = 2.5 * (game.getWidth()/2)
-        this.radius = (this.game.getWidth() / 2) * 2.5; // diameter
+        this.radius = 80; // 🎯 kích thước cố định theo pixel (đường kính)
         this.x = 2 * this.game.getWidth() + Math.random() * (game_W - 4 * this.game.getWidth());
         this.y = 2 * this.game.getWidth() + game_H / 3 + Math.random() * (2 * game_H / 3 - 4 * this.game.getWidth());
         this.alive = true;
         this.exploded = false;
-        // timestamp để điều khiển nổ nếu cần
         this.explodeTime = 0;
-        // no speed for bomb (static)
     }
 
-    // update() không thay đổi vị trí nhưng dùng để xử lý trạng thái nổ
     update() {
-        // nếu exploded và đã quá 1s thì chết hẳn
         if (this.exploded && Date.now() - this.explodeTime > 1000) {
             this.alive = false;
         }
@@ -125,7 +118,6 @@ class Bomb {
         if (!this.exploded) {
             ctx.drawImage(bombIm, this.x - this.radius / 2, this.y - this.radius / 2, this.radius, this.radius);
         } else {
-            // vẽ hình nổ lớn hơn bom (3x)
             ctx.drawImage(explosionIm, this.x - 1.5 * this.radius, this.y - 1.5 * this.radius, 3 * this.radius, 3 * this.radius);
         }
     }
@@ -139,7 +131,7 @@ class Bomb {
         this.exploded = true;
         this.explodeTime = Date.now();
 
-        // Phá hủy vật trong bán kính 3 lần kích thước bom (bạn có thể điều chỉnh)
+        // 💥 Phá hủy vật trong bán kính 3 lần kích thước bom (240px)
         const range = this.radius * 3;
         for (let i = 0; i < objects.length; i++) {
             const o = objects[i];
@@ -151,15 +143,13 @@ class Bomb {
                 o.alive = false;
             }
         }
-
-        // Bom sẽ biến mất sau 1s (được xử lý trong update())
-        // Không trừ điểm (theo yêu cầu)
     }
 
-    // nếu cần random lại vị trí từ vòng kiểm trùng
     randomXY() {
         this.x = 2 * this.game.getWidth() + Math.random() * (game_W - 4 * this.game.getWidth());
         this.y = 2 * this.game.getWidth() + game_H / 3 + Math.random() * (2 * game_H / 3 - 4 * this.game.getWidth());
     }
 }
+
+    
 
