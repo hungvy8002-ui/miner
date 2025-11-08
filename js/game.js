@@ -135,7 +135,10 @@ class game {
                         // 💥 Nếu là bom thì nổ, không cộng/trừ điểm
                         if (typeof Bomb !== 'undefined' && obj instanceof Bomb) {
                             obj.explode(this.gg);
-                            // không trừ điểm theo yêu cầu
+                            d = false; // ngừng kéo móc ra/về trong 1 khung
+                            ok = false;
+                            index = -1;
+                             // không trừ điểm theo yêu cầu
                             timeH = time - 0.7;
                             vlH = 0;
                             continue;
