@@ -98,7 +98,7 @@ explosionIm.src = "images/explosion.png";
 class Bomb {
     constructor(game) {
         this.game = game;
-        this.radius = 80; // 🎯 kích thước cố định theo pixel (đường kính)
+        this.radius = 60; // 🎯 kích thước cố định theo pixel (đường kính)
         this.x = 2 * this.game.getWidth() + Math.random() * (game_W - 4 * this.game.getWidth());
         this.y = 2 * this.game.getWidth() + game_H / 3 + Math.random() * (2 * game_H / 3 - 4 * this.game.getWidth());
         this.alive = true;
@@ -127,23 +127,32 @@ class Bomb {
     }
 
     explode(objects) {
-        if (this.exploded) return;
-        this.exploded = true;
-        this.explodeTime = Date.now();
+    if (this.exploded) return;
+    this.exploded = true;
+    this.explodeTime = Date.now();
 
-        // 💥 Phá hủy vật trong bán kính 3 lần kích thước bom (240px)
-        const range = this.radius * 3;
-        for (let i = 0; i < objects.length; i++) {
-            const o = objects[i];
-            if (!o || !o.alive || o === this) continue;
-            const dx = o.x - this.x;
-            const dy = o.y - this.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < range) {
-                o.alive = false;
-            }
+    // 🔥 Giữ bom sống thêm 1s để hiển thị nổ
+    this.alive = true;
+
+    // Phá hủy vật trong bán kính 3 lần kích thước bom (240px)
+    const range = this.radius * 3;
+    for (let i = 0; i < objects.length; i++) {
+        const o = objects[i];
+        if (!o || !o.alive || o === this) continue;
+        const dx = o.x - this.x;
+        const dy = o.y - this.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < range) {
+            o.alive = false;
         }
     }
+
+    // Sau 1s thì biến mất hẳn
+    setTimeout(() => {
+        this.alive = false;
+    }, 1000);
+}
+
 
     randomXY() {
         this.x = 2 * this.game.getWidth() + Math.random() * (game_W - 4 * this.game.getWidth());
