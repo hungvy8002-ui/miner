@@ -160,25 +160,43 @@ class game {
         }
 
         if (drag && index == -1) {
-            for (let i = 0; i < this.gg.length; i++) {
-                let obj = this.gg[i];
-                if (obj && obj.alive && this.range(Xh, Yh, obj.x, obj.y) <= obj.size()) {
-                    ok = true;
-                    index = i;
-                    break;
-                }
+    for (let i = 0; i < this.gg.length; i++) {
+        let obj = this.gg[i];
+        if (obj && obj.alive && this.range(Xh, Yh, obj.x, obj.y) <= obj.size()) {
+            if (obj instanceof Bomb) {
+                // Nổ ngay, không kéo hook
+                obj.explode(this.gg);
+                drag = false;   // dừng hook
+                d = false;
+            } else {
+                ok = true;
+                index = i;      // bình thường kéo vật
             }
-        }
-
-        if (index != -1) {
-            if (this.gg[index]) {
-                this.gg[index].x = Xh;
-                // Một số object (bomb) có thể không có height — an toàn khi dùng (this.gg[index].height || 0)
-                this.gg[index].y = Yh + (this.gg[index].height ? this.gg[index].height / 3 : 0);
-                speedReturn = this.gg[index].speed || speedReturn;
-            }
+            break;
         }
     }
+}
+
+
+        if (index != -1) {
+    let obj = this.gg[index];
+    if (obj) {
+        if (obj instanceof Bomb) {
+            // Nổ ngay, không kéo hook
+            obj.explode(this.gg);
+            index = -1;      // bỏ index để hook không kéo
+            drag = false;    // dừng hook
+            d = false;
+        } else {
+            // Kéo vật bình thường
+            obj.x = Xh;
+            obj.y = Yh + (obj.height ? obj.height / 3 : 0);
+            speedReturn = obj.speed || speedReturn;
+        }
+    }
+}
+
+    
 
     spawnNPC() {
         // 🔹 chỉ cho tối đa 3 NPC cùng tồn tại
